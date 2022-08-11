@@ -1,0 +1,633 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>使用GamePlayTag绑定UE5增强输入 | LiuSenSen</title>
+<link rel="shortcut icon" href="https://liusensen1123.github.io/LiuSenSen.github.io//favicon.ico?v=1660210787440">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liusensen1123.github.io/LiuSenSen.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="使用GamePlayTag绑定UE5增强输入 | LiuSenSen - Atom Feed" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="介绍
+将使用UE5第一人称模板和增强输入系统组合一个简单的输入系统。本文章不是深入探讨增强型输入系统或一般输入设计，而是作为理解基本概念的良好起点。
+项目设置
+创建第一人称模板项目，创建完成后在插件菜单栏启动EnhancedInpuy插件。..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liusensen1123.github.io/LiuSenSen.github.io/">
+  <img class="avatar" src="https://liusensen1123.github.io/LiuSenSen.github.io//images/avatar.png?v=1660210787440" alt="">
+  </a>
+  <h1 class="site-title">
+    LiuSenSen
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ge-ren-xiang-ce" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/liusensen1123" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/sen-sen-10-86" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              使用GamePlayTag绑定UE5增强输入
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-08-11
+              </span>
+              <span>
+                11 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h1 id="介绍">介绍</h1>
+<p>将使用UE5第一人称模板和增强输入系统组合一个简单的输入系统。本文章不是深入探讨增强型输入系统或一般输入设计，而是作为理解基本概念的良好起点。</p>
+<h1 id="项目设置">项目设置</h1>
+<p>创建第一人称模板项目，创建完成后在插件菜单栏启动<code>EnhancedInpuy</code>插件。</p>
+<h1 id="gameplaytag和资产管理器">GameplayTag和资产管理器</h1>
+<h2 id="gameplaytag设置">GameplayTag设置</h2>
+<p>我们将使用GameplayTag作为代码和编辑器之间的桥梁，在代码中引用标签进行输入绑定，在编辑器中通过数据资产进行输入配置。首先创建一个单例来保存GameplayTags。在rider中创建一个空类，命名<code>MyGameplayTags.h</code>，在<code>MyGameplayTags.h</code>中列出标签的定义和一些辅助的函数。</p>
+<h3 id="mygameplaytagsh">MyGameplayTags.h</h3>
+<pre><code class="language-c++">// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;GameplayTagContainer.h&quot;
+
+class UGameplayTagsManager;
+
+/**
+ * MyGameplayTags
+ *
+ * 游戏标签的单例
+ */
+struct FMyGameplayTags
+{
+public:
+
+   static const FMyGameplayTags&amp; Get() { return GameplayTags; }
+
+   static void InitializeNativeTags();
+
+   //输入标签
+   FGameplayTag InputTag_Move;
+   FGameplayTag InputTag_Look_Mouse;
+   FGameplayTag InputTag_Look_Stick;
+   FGameplayTag InputTag_Jump;
+   FGameplayTag InputTag_Fire;
+
+protected:
+
+   //使用 GameplayTags Manager 注册所有标签
+   void AddAllTags(UGameplayTagsManager&amp; Manager);
+
+   //注册一个标签
+   void AddTag(FGameplayTag&amp; OutTag, const ANSICHAR* TagName, const ANSICHAR* TagComment);
+
+private:
+
+   static FMyGameplayTags GameplayTags;
+};
+</code></pre>
+<h3 id="mygameplaytagscpp">MyGameplayTags.cpp</h3>
+<p>获取 GameplayTagsManager 并添加需要的标签。在代码中使用这些标签来绑定实际的字符函数，还将在编辑器中使用它们来配置输入绑定。<strong>注意：在Build.cs文件中添加GameplayTags；</strong></p>
+<pre><code class="language-c++">#include &quot;MyGameplayTags.h&quot;
+#include &quot;GameplayTagsManager.h&quot;
+#include &quot;Engine/EngineTypes.h&quot;
+
+FMyGameplayTags FMyGameplayTags::GameplayTags;
+
+void FMyGameplayTags::InitializeNativeTags()
+{
+   UGameplayTagsManager &amp; GameplayTagsManager =  UGameplayTagsManager::Get();
+
+   GameplayTags.AddAllTags(GameplayTagsManager);
+
+   //GameplayTagsManager.DoneAddingNativeTags();
+}
+
+void FMyGameplayTags::AddAllTags(UGameplayTagsManager&amp; Manager)
+{
+   AddTag(InputTag_Move, &quot;InputTag.Move&quot;, &quot;Move input.&quot;);
+   AddTag(InputTag_Look_Mouse, &quot;InputTag.Look.Mouse&quot;, &quot;Look (mouse) input.&quot;);
+   AddTag(InputTag_Look_Stick, &quot;InputTag.Look.Stick&quot;, &quot;Look (stick) input.&quot;);
+   AddTag(InputTag_Jump, &quot;InputTag.Jump&quot;, &quot;Jump input&quot;);
+   AddTag(InputTag_Fire, &quot;InputTag.Fire&quot;, &quot;Fire input.&quot;);
+}
+
+void FMyGameplayTags::AddTag(FGameplayTag&amp; OutTag, const ANSICHAR* TagName, const ANSICHAR* TagComment)
+{
+   OutTag = UGameplayTagsManager::Get().AddNativeGameplayTag(FName(TagName), FString(TEXT(&quot;(Native) &quot;)) + FString(TagComment));
+}
+</code></pre>
+<h2 id="资产管理器">资产管理器</h2>
+<p>使用资产管理器的StartInitialLoading函数在引擎初始化的时候加载和初始化我们的标签。</p>
+<h3 id="myassetmanagerh">MyAssetManager.h</h3>
+<pre><code class="language-c++">// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;Engine/AssetManager.h&quot;
+#include &quot;MyAssetManager.generated.h&quot;
+
+/**
+ * 
+ */
+UCLASS()
+class INPUTWITHGAMEPLAYTAG_API UMyAssetManager : public UAssetManager
+{
+   GENERATED_BODY()
+
+public:
+   UMyAssetManager();
+
+   static  UMyAssetManager&amp; Get();
+
+protected:
+   virtual  void StartInitialLoading() override;
+};
+</code></pre>
+<h3 id="myassetmanagercpp">MyAssetManager.cpp</h3>
+<pre><code class="language-c++">// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include &quot;MyAssetManager.h&quot;
+
+#include &quot;MyGameplayTags.h&quot;
+
+UMyAssetManager::UMyAssetManager()
+{
+   
+}
+
+UMyAssetManager&amp; UMyAssetManager::Get()
+{
+   check(GEngine);
+
+   UMyAssetManager* MyAssetManager=Cast&lt;UMyAssetManager&gt;(GEngine-&gt;AssetManager);
+   return  * MyAssetManager;
+}
+
+void UMyAssetManager::StartInitialLoading()
+{
+   Super::StartInitialLoading();
+
+   FMyGameplayTags::InitializeNativeTags();
+}
+</code></pre>
+<p><strong>注意：需要在项目设置中搜索 AssetMessage ,在资产管理器中更换为MyAssetManager。</strong></p>
+<h1 id="输入配置">输入配置</h1>
+<p>需要一种将输入标签与编辑器中输入操作相关联的方法，因此我们将创建一个数据资产来帮助我们解决。 首先，我们将创建一个简单的结构体来包含UInputAction 和 FGameplayTag。 我们将命名结构 FTaggedInputAction 并将其公开到蓝图。 接下来，我们的数据资产将包含一个FTaggedInputAction 数组和一个通过标签寻找Action的方法。</p>
+<h2 id="inputconfigh">InputConfig.h</h2>
+<pre><code class="language-c++">#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;Engine/DataAsset.h&quot;
+#include &quot;GameplayTags/Classes/GameplayTagContainer.h&quot;
+#include &quot;InputConfig.generated.h&quot;
+
+class UInputAction;
+struct FGameplayTag;
+
+
+/**
+ * FTaggedInputAction
+ *
+ * 将操作和Tag结合
+ */
+USTRUCT(BlueprintType)
+struct FTaggedInputAction
+{
+   GENERATED_BODY()
+
+public:
+
+   UPROPERTY(EditDefaultsOnly)
+   const UInputAction* InputAction = nullptr;
+
+   UPROPERTY(EditDefaultsOnly, Meta = (Categories = &quot;InputTag&quot;))
+   FGameplayTag InputTag;
+};
+
+/**
+ *
+ */
+UCLASS()
+class INPUTWITHGAMEPLAYTAG_API UInputConfig : public UDataAsset
+{
+   GENERATED_BODY()
+
+public:
+   // 返回一个给定标签的输入操作（第一个）
+   UFUNCTION()
+   const UInputAction* FindInputActionForTag(const FGameplayTag&amp; InputTag) const;
+
+public:
+   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = &quot;InputAction&quot;))
+   TArray&lt;FTaggedInputAction&gt; TaggedInputActions;
+};
+</code></pre>
+<h2 id="inputconfigcpp">InputConfig.CPP</h2>
+<pre><code class="language-c++">#include &quot;InputConfig.h&quot;
+#include &quot;GameplayTagContainer.h&quot;
+
+const UInputAction* UInputConfig::FindInputActionForTag(const FGameplayTag&amp; InputTag) const
+{
+   for (const FTaggedInputAction&amp; TaggedInputAction : TaggedInputActions)
+   {
+      if (TaggedInputAction.InputAction &amp;&amp; TaggedInputAction.InputTag == InputTag)
+      {
+         return TaggedInputAction.InputAction;
+      }
+   }
+
+   return nullptr;
+}
+</code></pre>
+<p><strong>注意：添加UInputAction的API，在Build.cs文件中</strong></p>
+<h1 id="enhancedinputcomponent增强输入组件">EnhancedInputComponent增强输入组件</h1>
+<p>继承自UEnhancedInputComponent，借助BindAction方法进行输入操作绑定。</p>
+<h2 id="umyenhancedinputcomponenth">UMyEnhancedInputComponent.h</h2>
+<pre><code class="language-c++">// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;EnhancedInputComponent.h&quot;
+#include &quot;GameplayTagContainer.h&quot;
+#include &quot;InputConfig.h&quot;
+#include &quot;MyEnhancedInputComponent.generated.h&quot;
+
+/**
+ * 
+ */
+UCLASS()
+class INPUTWITHGAMEPLAYTAG_API UMyEnhancedInputComponent : public UEnhancedInputComponent
+{
+   GENERATED_BODY()
+public:
+   template&lt;class UserCalss,typename FunType&gt;
+   void BindActionBuTag(const UInputConfig* InputConfig ,const FGameplayTag&amp; InputTag,ETriggerEvent TriggerEvent,UserCalss* Object,FunType Func);
+   
+};
+template&lt;class UserCalss,typename FunType&gt;
+void UMyEnhancedInputComponent::BindActionBuTag(const UInputConfig* InputConfig ,const FGameplayTag&amp; InputTag,ETriggerEvent TriggerEvent,UserCalss* Object,FunType Func)
+{
+   check(InputConfig);
+   if (const UInputAction* IA =InputConfig-&gt;FindInputActionForTag(InputTag))
+   {
+      BindAction(IA,TriggerEvent,Object,Func);
+   }
+}
+</code></pre>
+<p><strong>注意：需要在项目设置中指定输入组件，选择UMyEnhancedInputComponent。</strong></p>
+<h1 id="角色设置">角色设置</h1>
+<p>在角色代码中简化了模板的代码，添加一个InputConfig的指针变量，添加基础的功能方法。（只做了对应测试效果）</p>
+<h2 id="characterh">Character.h</h2>
+<pre><code class="language-c++">// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;InputActionValue.h&quot;
+#include &quot;InputConfig.h&quot;
+#include &quot;GameFramework/Character.h&quot;
+#include &quot;InputWithGameplayTagCharacter.generated.h&quot;
+
+class UInputComponent;
+class USkeletalMeshComponent;
+class USceneComponent;
+class UCameraComponent;
+class UAnimMontage;
+class USoundBase;
+
+// Declaration of the delegate that will be called when the Primary Action is triggered
+// It is declared as dynamic so it can be accessed also in Blueprints
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUseItem);
+
+UCLASS(config=Game)
+class AInputWithGameplayTagCharacter : public ACharacter
+{
+   GENERATED_BODY()
+
+   /** Pawn mesh: 1st person view (arms; seen only by self) */
+   UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+   USkeletalMeshComponent* Mesh1P;
+
+   /** First person camera */
+   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = &quot;true&quot;))
+   UCameraComponent* FirstPersonCameraComponent;
+
+public:
+   AInputWithGameplayTagCharacter();
+
+protected:
+   virtual void BeginPlay();
+   
+   virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+public:
+   
+   USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+   
+   UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+
+
+
+public:
+   UPROPERTY(EditDefaultsOnly,Category=&quot;Input&quot;)
+   UInputConfig* InputConfig;
+   
+
+   void Input_Move(const FInputActionValue&amp; InputActionValue);
+
+
+   void Input_Look(const FInputActionValue&amp; InputActionValue);
+
+
+   void Input_Jump(const FInputActionValue&amp; InputActionValue);
+
+
+   void Input_Fire(const FInputActionValue&amp; InputActionValue);
+   
+};
+</code></pre>
+<h2 id="charactercpp">Character.cpp</h2>
+<p>接下来需要使用相关的游戏性标签将角色的操作函数绑定到适当的 InputAction。这是通过覆盖 SetupPlayerInputComponent 并使用我们添加到增强型输入组件中的 BindActionByTag 函数来完成的。使用这种方法需要我们将相应的字符动作硬编码到输入标签，例如原生级别的 InputTag_Move、InputTag_Fire，但是当我们使用 UInputConfig 资产配置 InputActions 时，它为我们提供了编辑器灵活性。</p>
+<pre><code class="language-c++">// Copyright Epic Games, Inc. All Rights Reserved.
+
+#include &quot;InputWithGameplayTagCharacter.h&quot;
+#include &quot;InputWithGameplayTagProjectile.h&quot;
+#include &quot;MyEnhancedInputComponent.h&quot;
+#include &quot;MyGameplayTags.h&quot;
+#include &quot;Animation/AnimInstance.h&quot;
+#include &quot;Camera/CameraComponent.h&quot;
+#include &quot;Components/CapsuleComponent.h&quot;
+#include &quot;Components/InputComponent.h&quot;
+#include &quot;GameFramework/InputSettings.h&quot;
+
+
+//////////////////////////////////////////////////////////////////////////
+// AInputWithGameplayTagCharacter
+
+AInputWithGameplayTagCharacter::AInputWithGameplayTagCharacter()
+{
+   // Set size for collision capsule
+   GetCapsuleComponent()-&gt;InitCapsuleSize(55.f, 96.0f);
+
+
+
+   // Create a CameraComponent    
+   FirstPersonCameraComponent = CreateDefaultSubobject&lt;UCameraComponent&gt;(TEXT(&quot;FirstPersonCamera&quot;));
+   FirstPersonCameraComponent-&gt;SetupAttachment(GetCapsuleComponent());
+   FirstPersonCameraComponent-&gt;SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
+   FirstPersonCameraComponent-&gt;bUsePawnControlRotation = true;
+
+   // Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+   Mesh1P = CreateDefaultSubobject&lt;USkeletalMeshComponent&gt;(TEXT(&quot;CharacterMesh1P&quot;));
+   Mesh1P-&gt;SetOnlyOwnerSee(true);
+   Mesh1P-&gt;SetupAttachment(FirstPersonCameraComponent);
+   Mesh1P-&gt;bCastDynamicShadow = false;
+   Mesh1P-&gt;CastShadow = false;
+   Mesh1P-&gt;SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
+   Mesh1P-&gt;SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
+
+}
+
+void AInputWithGameplayTagCharacter::BeginPlay()
+{
+   // Call the base class  
+   Super::BeginPlay();
+
+}
+
+//////////////////////////////////////////////////////////////////////////// Input
+
+void AInputWithGameplayTagCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+{
+   UMyEnhancedInputComponent* MyEnhancedInputComponent=Cast&lt;UMyEnhancedInputComponent&gt;(PlayerInputComponent);
+   check(MyEnhancedInputComponent);
+
+   const FMyGameplayTags&amp; GameplayTags =FMyGameplayTags::Get();
+
+   MyEnhancedInputComponent-&gt;BindActionBuTag(InputConfig,GameplayTags.InputTag_Move,ETriggerEvent::Triggered,this,&amp;AInputWithGameplayTagCharacter::Input_Move);
+   MyEnhancedInputComponent-&gt;BindActionBuTag(InputConfig,GameplayTags.InputTag_Fire,ETriggerEvent::Triggered,this,&amp;AInputWithGameplayTagCharacter::Input_Fire);
+   
+}
+
+void AInputWithGameplayTagCharacter::Input_Move(const FInputActionValue&amp; InputActionValue)
+{
+   GEngine-&gt;AddOnScreenDebugMessage(1, 1, FColor::Red, TEXT(&quot;1&quot;));
+}
+
+void AInputWithGameplayTagCharacter::Input_Look(const FInputActionValue&amp; InputActionValue)
+{
+}
+
+void AInputWithGameplayTagCharacter::Input_Jump(const FInputActionValue&amp; InputActionValue)
+{
+}
+
+void AInputWithGameplayTagCharacter::Input_Fire(const FInputActionValue&amp; InputActionValue)
+{
+   GEngine-&gt;AddOnScreenDebugMessage(1, 1, FColor::Red, TEXT(&quot;2&quot;));
+}
+</code></pre>
+<h1 id="-分界线-">------分界线-----</h1>
+<p><strong>C++的部分已经全部完成，接下来在蓝图中操作即可。</strong></p>
+<h1 id="inputasset和输入配置">InputAsset和输入配置</h1>
+<h2 id="inputaction">InputAction</h2>
+<p>Input Action 代表一个抽象的游戏操作。输入操作返回以下数据类型之一的值：bool、float、Vector2 和 Vector3。它们还可以配置触发规则和值修饰符。</p>
+<p>触发器通过设置限定符和条件来影响触发操作的方式或时间。例如，“Pressed”触发器每次按下触发事件一次。而“Pulse”触发器将在按下键或按钮时每隔一段时间触发事件。可以应用修饰符来调整输入动作的最终输出。例如，“DeadZone”修饰符将输入值限制在阈值下限和上限之间。</p>
+<p>对于我们的简单示例，我们需要五个输入操作。我们将<strong>Look</strong> 拆分为两个动作，因此我们可以分别处理基于鼠标和摇杆的输入。通过在内容浏览器中单击鼠标右键并选择来创建以下输入操作<code>输入-&gt;输入操作</code>从资产创建菜单。</p>
+<p>分别创建对应的开火跳跃等等，在此不一一列举。</p>
+<h2 id="inputconfig">InputConfig</h2>
+<p>输入配置将基于我们之前定义的 UInputConfig 类。在这里，我们将配置输入标签和应该为角色或Pawn绑定的输入操作之间的关联。通过在内容浏览器中右键单击并选择来创建输入配置资产杂项-&gt;数据资产然后在类选择器中选择 InputConfig。</p>
+<p>创建好之后，为每个输入操作添加一个子项。</p>
+<figure data-type="image" tabindex="1"><img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1660210214585.png" alt="" loading="lazy"></figure>
+<h2 id="角色蓝图">角色蓝图</h2>
+<figure data-type="image" tabindex="2"><img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1660210354467.png" alt="" loading="lazy"></figure>
+<h1 id="概括">概括</h1>
+<p>我们实现了一个基础输入系统，该系统利用增强输入系统和游戏标签来实现可配置性。首先，我们创建了原生 Gameplay 标签来描述输入并使用 Asset Manager 加载它们。接下来，我们创建了一个数据资产来将输入标签映射到输入操作，并使用该数据将输入操作绑定到我们原生角色的操作。然后我们创建了所有必要的资产来定义和配置我们的输入。最后，我们通过设置一个角色蓝图来使用这个系统，将它们联系在一起。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BB%8B%E7%BB%8D">介绍</a></li>
+<li><a href="#%E9%A1%B9%E7%9B%AE%E8%AE%BE%E7%BD%AE">项目设置</a></li>
+<li><a href="#gameplaytag%E5%92%8C%E8%B5%84%E4%BA%A7%E7%AE%A1%E7%90%86%E5%99%A8">GameplayTag和资产管理器</a>
+<ul>
+<li><a href="#gameplaytag%E8%AE%BE%E7%BD%AE">GameplayTag设置</a>
+<ul>
+<li><a href="#mygameplaytagsh">MyGameplayTags.h</a></li>
+<li><a href="#mygameplaytagscpp">MyGameplayTags.cpp</a></li>
+</ul>
+</li>
+<li><a href="#%E8%B5%84%E4%BA%A7%E7%AE%A1%E7%90%86%E5%99%A8">资产管理器</a>
+<ul>
+<li><a href="#myassetmanagerh">MyAssetManager.h</a></li>
+<li><a href="#myassetmanagercpp">MyAssetManager.cpp</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E8%BE%93%E5%85%A5%E9%85%8D%E7%BD%AE">输入配置</a>
+<ul>
+<li><a href="#inputconfigh">InputConfig.h</a></li>
+<li><a href="#inputconfigcpp">InputConfig.CPP</a></li>
+</ul>
+</li>
+<li><a href="#enhancedinputcomponent%E5%A2%9E%E5%BC%BA%E8%BE%93%E5%85%A5%E7%BB%84%E4%BB%B6">EnhancedInputComponent增强输入组件</a>
+<ul>
+<li><a href="#umyenhancedinputcomponenth">UMyEnhancedInputComponent.h</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A7%92%E8%89%B2%E8%AE%BE%E7%BD%AE">角色设置</a>
+<ul>
+<li><a href="#characterh">Character.h</a></li>
+<li><a href="#charactercpp">Character.cpp</a></li>
+</ul>
+</li>
+<li><a href="#-%E5%88%86%E7%95%8C%E7%BA%BF-">------分界线-----</a></li>
+<li><a href="#inputasset%E5%92%8C%E8%BE%93%E5%85%A5%E9%85%8D%E7%BD%AE">InputAsset和输入配置</a>
+<ul>
+<li><a href="#inputaction">InputAction</a></li>
+<li><a href="#inputconfig">InputConfig</a></li>
+<li><a href="#%E8%A7%92%E8%89%B2%E8%93%9D%E5%9B%BE">角色蓝图</a></li>
+</ul>
+</li>
+<li><a href="#%E6%A6%82%E6%8B%AC">概括</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/lyra-shu-ru-xi-tong/">
+              <h3 class="post-title">
+                Lyra输入系统
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <a href='tencent://message/?uin=3304886559'>联系方式</a>
+  <a class="rss" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

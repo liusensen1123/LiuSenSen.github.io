@@ -1,0 +1,228 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>相机模块功能 | LiuSenSen</title>
+<link rel="shortcut icon" href="https://liusensen1123.github.io/LiuSenSen.github.io//favicon.ico?v=1660210787440">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liusensen1123.github.io/LiuSenSen.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="相机模块功能 | LiuSenSen - Atom Feed" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="CameraComponent
+
+通过配置表DT_CharacterInitConf的形式配到玩家角色上。
+组件中暴露了一个可访问的静态函数FindCameraComponent来获取到玩家身上的相机组件。
+相机组件的TargetActor..." />
+    <meta name="keywords" content="UE4" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liusensen1123.github.io/LiuSenSen.github.io/">
+  <img class="avatar" src="https://liusensen1123.github.io/LiuSenSen.github.io//images/avatar.png?v=1660210787440" alt="">
+  </a>
+  <h1 class="site-title">
+    LiuSenSen
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ge-ren-xiang-ce" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/liusensen1123" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/sen-sen-10-86" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              相机模块功能
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-25
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tag/_y3IsXUSH/" class="post-tag">
+                  # UE4
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/xiang-ji-mo-kuai-gong-neng.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h1 id="cameracomponent">CameraComponent</h1>
+<ul>
+<li>通过配置表<code>DT_CharacterInitConf</code>的形式配到玩家角色上。</li>
+<li>组件中暴露了一个可访问的静态函数<code>FindCameraComponent</code>来获取到玩家身上的相机组件。</li>
+<li>相机组件的<code>TargetActor</code>为相机的<code>Owner</code>。</li>
+<li>相机组件中使用<code>CameraModeStack</code>存贮了相机当前的模式，可以通过Pull和Push来动态的管理。</li>
+<li><code>CameraModePriorityStack</code>为相机堆栈的优先级。</li>
+<li><code>UpdateBlendingStack</code>更新当前相机模式的堆栈。</li>
+<li><code>GetCameraView</code>帧调用事件，重写父类<code>UCameraComponent</code>的函数。后续相机的数据更新都是在这个函数下进行。</li>
+</ul>
+<h1 id="cameramodebase">CameraModeBase</h1>
+<ul>
+<li>
+<p>使用方法：在蓝图中继承<code>CameraModeBase</code>，或者在C++中继承并添加相应的功能，然后在蓝图中进行数值的配置。</p>
+</li>
+<li>
+<p><code>AddControllerRotationInput</code>等函数只能在Pawn的组件下调用，因为其中的实现方式的目标为Pawn。</p>
+<h3 id="fncameramodeview">FNCameraModeView()</h3>
+<p>用于存储当前相机组件的数据，包含了相机的中枢位置，当前的世界旋转，当前的世界位置。在<code>UNCameraModeBase</code>中使用函数<code>UpdateView()</code>进行逻辑计算，在<code>UpdateCameraMode（）</code>函数中进行赋值。</p>
+</li>
+</ul>
+<h1 id="springarmcameramode">SpringArmCameraMode</h1>
+<ul>
+<li>是<code>CameraModeBase</code>的延续，在<code>CameraModeBase</code>的基础上添加了相机臂的一些操作。</li>
+<li>相机臂在进行视角变化或者相机臂的长度进行变化时，多数是去修改他的配置参数，然后再<code>Updata</code>中进行更新</li>
+</ul>
+<h1 id="terraindetecting">TerrainDetecting</h1>
+<p>保持相机和地面平行,例如上坡的时候往上看，下坡的时候往下看。表现效果为在游戏过程中鼠标操作间隔n秒没有操作之后视线自动回归配置的位置。</p>
+<h1 id="camerasplinemovecomponent">CameraSplineMoveComponent</h1>
+<p>可以将组件挂载到Actor上配合蓝图中的<code>BP_CameraTrigger</code>和<code>NSplineActor</code>使用。</p>
+<h1 id="已知问题">已知问题</h1>
+<p>目前相机臂模式中不支持在非Pawn的Actor上挂在相机组件并且进行视角晃动。因为在<code>UpdateCameraRotation</code>函数中进行了Pawn的判定</p>
+<p>快速晃动视角相机会出现卡顿的情况。可能情况：</p>
+<blockquote>
+<p>1、旋转值由0到360的过程变成了0到-360出现反向旋转。</p>
+<p>2、向右旋转过程中有一种缓出的过渡效果，这时候突然向左移动，过度效果没有消失，出现冲突。</p>
+</blockquote>
+<h1 id="other">Other</h1>
+<ol>
+<li><code>TOptional</code>模板类是专门应用于标记一个变量是否被赋值。<code>IsSet()</code>函数：<code>TOptional&lt;float&gt; TargetArmLen</code>  当值有意义时为真；如果调用 Get Value() 未定义，则返回 false。<code>Reset()</code>函数：配合<code>IsSet()</code>函数使用，将<code>IsSet</code>变量设置为假。</li>
+</ol>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#cameracomponent">CameraComponent</a></li>
+<li><a href="#cameramodebase">CameraModeBase</a><br>
+*
+<ul>
+<li><a href="#fncameramodeview">FNCameraModeView()</a></li>
+</ul>
+</li>
+<li><a href="#springarmcameramode">SpringArmCameraMode</a></li>
+<li><a href="#terraindetecting">TerrainDetecting</a></li>
+<li><a href="#camerasplinemovecomponent">CameraSplineMoveComponent</a></li>
+<li><a href="#%E5%B7%B2%E7%9F%A5%E9%97%AE%E9%A2%98">已知问题</a></li>
+<li><a href="#other">Other</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+
+        
+
+        <div class="site-footer">
+  <a href='tencent://message/?uin=3304886559'>联系方式</a>
+  <a class="rss" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

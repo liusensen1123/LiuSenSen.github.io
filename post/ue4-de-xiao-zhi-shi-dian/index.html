@@ -1,0 +1,377 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UE4的小知识点 | LiuSenSen</title>
+<link rel="shortcut icon" href="https://liusensen1123.github.io/LiuSenSen.github.io//favicon.ico?v=1660210787440">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liusensen1123.github.io/LiuSenSen.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="UE4的小知识点 | LiuSenSen - Atom Feed" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="（一）互联网上收集的小教程
+UE4自定义点击区域的Button
+UE4触摸屏旋转、双指缩放
+UE4 游戏中启动其他的进程（xx.exe）
+UE4使用Http下载文件
+UE4增加观察者
+UE4爆头和穿墙
+UE4是单线程的吗
+UE4 .upro..." />
+    <meta name="keywords" content="UE4" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liusensen1123.github.io/LiuSenSen.github.io/">
+  <img class="avatar" src="https://liusensen1123.github.io/LiuSenSen.github.io//images/avatar.png?v=1660210787440" alt="">
+  </a>
+  <h1 class="site-title">
+    LiuSenSen
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ge-ren-xiang-ce" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/liusensen1123" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/sen-sen-10-86" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              UE4的小知识点
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-25
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tag/_y3IsXUSH/" class="post-tag">
+                  # UE4
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/ue4-de-xiao-zhi-shi-dian.jpg" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h2 id="一互联网上收集的小教程">（一）互联网上收集的小教程</h2>
+<p><a href="https://blog.csdn.net/weixin_45959035/article/details/111562312">UE4自定义点击区域的Button</a></p>
+<p><a href="https://blog.csdn.net/weixin_45959035/article/details/111563029">UE4触摸屏旋转、双指缩放</a></p>
+<p><a href="http://www.v5xy.com/?p=696">UE4 游戏中启动其他的进程（xx.exe）</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/388335131">UE4使用Http下载文件</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/9985746.html">UE4增加观察者</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10113827.html">UE4爆头和穿墙</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10182685.html">UE4是单线程的吗</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10286383.html">UE4 .uproject文件无关联 右键菜单少了</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10301234.html">UE4富文本</a></p>
+<h2 id="二-ue4-c必备知识点">（二） UE4 C++必备知识点</h2>
+<h3 id="1-宏判断">1、宏判断</h3>
+<table>
+<thead>
+<tr>
+<th>UE4宏</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UE_BUILD_SHIPPING</td>
+<td>是不是构建发行包</td>
+</tr>
+<tr>
+<td>UE_BUILD_DEBUG</td>
+<td>是不是构建DeBug包</td>
+</tr>
+<tr>
+<td>UE_BUILD_DEVELOPMENT</td>
+<td>是不是构建开发包</td>
+</tr>
+<tr>
+<td>UE_GAME</td>
+<td>是不是游戏模式</td>
+</tr>
+<tr>
+<td>UE_EDITOR</td>
+<td>是不是编辑器模式</td>
+</tr>
+<tr>
+<td>UE_SERVER</td>
+<td>是不是独立服务器</td>
+</tr>
+<tr>
+<td>更多宏判断在Build.h文件中</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-prc网络">2、PRC网络</h3>
+<p>添加可复制变量是需要在类中重写</p>
+<ul>
+<li>GetLifetimeReplicatedProps(TArray&lt; FLifetimeProperty &gt; &amp; OutLifetimeProps) const</li>
+<li>DOREPLIFETIME_CONDITION( AGamePC, PlayFightInfo, COND_OwnerOnly);</li>
+</ul>
+<h3 id="3-创建异步加载节点">3、创建异步加载节点</h3>
+<pre><code class="language-c++">Ｈ文件
+
+UENUM(BlueprintType)
+enum class EDownloadWay :uint8
+{
+	Get,
+	Post
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBPHttpDownloadNode, FString, Result);
+UCLASS()
+class YDEMO_API UHttpDownloadNode : public UBlueprintAsyncActionBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable)
+		FBPHttpDownloadNode OnSuccess;
+	UPROPERTY(BlueprintAssignable)
+		FBPHttpDownloadNode OnFail;
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = &quot;true&quot;))
+		static UHttpDownloadNode* BP_Download(EDownloadWay Download, const FString&amp; URL);
+	//完成
+	void OnRequestComplete(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded);
+	//进度
+	void OnRequestProgress(FHttpRequestPtr HttpRequest, int32 BytesSent, int32 BytesReceived);
+};
+CPP文件
+
+UHttpDownloadNode* UHttpDownloadNode::BP_Download(EDownloadWay Download, const FString&amp; URL)
+{
+	UHttpDownloadNode* BlueprintNode = NewObject&lt;UHttpDownloadNode&gt;();
+
+	FHttpRequestRef HttpReuest = FHttpModule::Get().CreateRequest();
+	HttpReuest-&gt;SetURL(URL);
+	UE_LOG(LogTemp, Error, TEXT(&quot;%s&quot;), *URL);
+	HttpReuest-&gt;SetVerb(TEXT(&quot;GET&quot;));
+	HttpReuest-&gt;SetHeader(TEXT(&quot;Content-Type&quot;), TEXT(&quot;application/x-www-form-urlencoded&quot;));
+	HttpReuest-&gt;OnProcessRequestComplete().BindUObject(BlueprintNode, &amp;UHttpDownloadNode::OnRequestComplete);
+	HttpReuest-&gt;OnRequestProgress().BindUObject(BlueprintNode, &amp;UHttpDownloadNode::OnRequestProgress);
+	HttpReuest-&gt;ProcessRequest();
+	return nullptr;
+
+}
+
+void UHttpDownloadNode::OnRequestComplete(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded)
+{
+
+}
+
+void UHttpDownloadNode::OnRequestProgress(FHttpRequestPtr HttpRequest, int32 BytesSent, int32 BytesReceived)
+{
+
+}
+
+</code></pre>
+<h3 id="4-判断ue4运行平台">4、判断UE4运行平台</h3>
+<pre><code class="language-c++"> FPlatformProperties::IniPlatformName();
+ UGameplayStatics::GetPlatformName()；
+</code></pre>
+<h3 id="5-ue4默认读取ini文件">5、UE4默认读取ini文件</h3>
+<p>例如 DefaultGame.ini文件内容如下</p>
+<pre><code class="language-ini">[/Script/UI.Setting]
+;血量低于此值时显示泛红
+HpLowPercent=0.3
+;操作滑杆最大值
+OperationSliderMax=100
+;画面滑杆最大值
+FrameSliderMax=100
+;声音滑杆最大值
+SoundSliderMax=100
+;其他滑杆最大值
+OtherSliderMax=100
+</code></pre>
+<p>读取方式为：</p>
+<pre><code class="language-c++">	float ReturnVaule=50;
+	TArray&lt;FString&gt; ConfigTable={&quot;OperationSliderMax&quot;,&quot;FrameSliderMax&quot;,&quot;SoundSliderMax&quot;,&quot;OtherSliderMax&quot;};
+	GConfig-&gt;GetFloat(TEXT(&quot;/Script/UI.Setting&quot;), *ConfigTable[sID-1], ReturnVaule, GGameIni);
+	return ReturnVaule;
+</code></pre>
+<p>其中GConfig中还包含类似的 GetString(）等同类型的函数。<br>
+GGameIni是引擎自带的默认定义的ini文件。还有其他的GInputIni等。定义位置为CoreGlobals.cpp;</p>
+<h3 id="6-kismetsystem库中冷门api">6、KismetSystem库中冷门API</h3>
+<blockquote>
+<ol>
+<li>获取引擎版本<br>
+<code>static FString GetEngineVersion();</code></li>
+<li>获取项目名称<br>
+<code>static FString GetGameName();</code></li>
+<li>设置Windows窗口标题<br>
+<code>static void SetWindowTitle(const FText&amp; Title);</code></li>
+<li>将组件移动到***<br>
+<code>static void MoveComponentTo(USceneComponent* Component, FVector TargetRelativeLocation, FRotator TargetRelativeRotation, bool bEaseOut, bool bEaseIn, float OverTime, bool bForceShortestRotationPath, TEnumAsByte&lt;EMoveComponentAction::Type&gt; MoveAction, FLatentActionInfo LatentInfo);</code></li>
+<li>获取渲染细节模式<br>
+<code>static int32 GetRenderingDetailMode();</code></li>
+<li>显示广告条幅<br>
+<code>static void ShowAdBanner(int32 AdIdIndex, bool bShowOnBottomOfScreen);</code></li>
+<li>已启用屏保<br>
+<code>static bool IsScreensaverEnabled();</code></li>
+</ol>
+</blockquote>
+<h3 id="7-ue4模拟网络延时和丢包">7、UE4模拟网络延时和丢包</h3>
+<p>命令行指令</p>
+<blockquote>
+<ul>
+<li>1、Net pktLag=，模拟延迟，单位是毫秒</li>
+<li>2、Net PktLagVariance=300，在模拟延迟的基础上，再上下浮动300毫秒。加上这个就会出现移动瞬移卡顿的效果</li>
+<li>3、Net PKtLoss=，丢包，单位是百分比，Net PKtLoss=90就是90%会丢包，也会出现移动瞬移卡顿</li>
+<li>4、Net PktOrder=1，乱序发包，会出现一定的移动瞬移，但不太明显</li>
+<li>5、Net PktDup=，重复发包，单位是百分比，Net PktDup=20表示20%会出现重复发包。</li>
+</ul>
+</blockquote>
+<h2 id="三常用工具">（三）常用工具</h2>
+<p><a href="https://gitee.com/sourcegit/sourcegit?_from=gitee_search">SourceGit</a></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%B8%80%E4%BA%92%E8%81%94%E7%BD%91%E4%B8%8A%E6%94%B6%E9%9B%86%E7%9A%84%E5%B0%8F%E6%95%99%E7%A8%8B">（一）互联网上收集的小教程</a></li>
+<li><a href="#%E4%BA%8C-ue4-c%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86%E7%82%B9">（二） UE4 C++必备知识点</a>
+<ul>
+<li><a href="#1-%E5%AE%8F%E5%88%A4%E6%96%AD">1、宏判断</a></li>
+<li><a href="#2-prc%E7%BD%91%E7%BB%9C">2、PRC网络</a></li>
+<li><a href="#3-%E5%88%9B%E5%BB%BA%E5%BC%82%E6%AD%A5%E5%8A%A0%E8%BD%BD%E8%8A%82%E7%82%B9">3、创建异步加载节点</a></li>
+<li><a href="#4-%E5%88%A4%E6%96%ADue4%E8%BF%90%E8%A1%8C%E5%B9%B3%E5%8F%B0">4、判断UE4运行平台</a></li>
+<li><a href="#5-ue4%E9%BB%98%E8%AE%A4%E8%AF%BB%E5%8F%96ini%E6%96%87%E4%BB%B6">5、UE4默认读取ini文件</a></li>
+<li><a href="#6-kismetsystem%E5%BA%93%E4%B8%AD%E5%86%B7%E9%97%A8api">6、KismetSystem库中冷门API</a></li>
+<li><a href="#7-ue4%E6%A8%A1%E6%8B%9F%E7%BD%91%E7%BB%9C%E5%BB%B6%E6%97%B6%E5%92%8C%E4%B8%A2%E5%8C%85">7、UE4模拟网络延时和丢包</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7">（三）常用工具</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/xiang-ji-mo-kuai-gong-neng/">
+              <h3 class="post-title">
+                相机模块功能
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <a href='tencent://message/?uin=3304886559'>联系方式</a>
+  <a class="rss" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

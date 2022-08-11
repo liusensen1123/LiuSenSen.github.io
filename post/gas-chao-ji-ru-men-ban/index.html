@@ -1,0 +1,189 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GAS超级入门版 | LiuSenSen</title>
+<link rel="shortcut icon" href="https://liusensen1123.github.io/LiuSenSen.github.io//favicon.ico?v=1660210787440">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liusensen1123.github.io/LiuSenSen.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="GAS超级入门版 | LiuSenSen - Atom Feed" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="GAS关键字介绍
+😀1. AbilitySystemComponent：技能系统组件是整个GAS的核心，用于管理各种技能和处理技能系统的所有交互。该组件附加在需要拥有技能的角色上，并可以把技能赋予角色。
+😃2. GameplayTag：..." />
+    <meta name="keywords" content="UE4" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liusensen1123.github.io/LiuSenSen.github.io/">
+  <img class="avatar" src="https://liusensen1123.github.io/LiuSenSen.github.io//images/avatar.png?v=1660210787440" alt="">
+  </a>
+  <h1 class="site-title">
+    LiuSenSen
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ge-ren-xiang-ce" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/liusensen1123" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/sen-sen-10-86" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              GAS超级入门版
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-27
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tag/_y3IsXUSH/" class="post-tag">
+                  # UE4
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/gas-chao-ji-ru-men-ban.bmp" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h1 id="gas关键字介绍">GAS关键字介绍</h1>
+<p>😀1. <strong>AbilitySystemComponent</strong>：技能系统组件是整个GAS的核心，用于管理各种技能和处理技能系统的所有交互。该组件附加在需要拥有技能的角色上，并可以把技能赋予角色。<br>
+😃2. <strong>GameplayTag</strong>：游戏性标签GameplayTag是用于标记、描述Ability和Effect等游戏对象，相当于它们的ID。GameplayTag的内部实现基于虚幻的FName字符串，因此具有高效的查询性能。GameplayTag不仅能用于技能系统，也可以在其它任何地方使用，当需要层级标签的时候。<br>
+😄3. <strong>GameplayAbility（GA）</strong>：技能GameplayAbility是角色可以使用的能力，比如跳跃、攻击、火球术、次元斩等。创建不同的技能是GAS的一个主要工作。在GA中可以触发不同的技能任务（AbilityTask），它们承担了诸如播放动画、角色移动等持续一段时间的功能。<br>
+😁4. <strong>GameplayEffect（GE）</strong>：游戏性效果GameplayEffect相当于GAS中的Buff类，用于修改各种数值，一般通过改变自己或目标的属性值和标签(GameplayTag)来实现。比如附加伤害、回血、光环、Buff/Debuff等。技能的消耗和冷却通常也是用GE实现。属性集AttributeSet是表示Actor各种属性值的集合，保存在ASC中，是GE的主要作用目标。<br>
+😆5. <strong>GameplayCue</strong>：游戏性提示GameplayCue类似于GAS中的通知事件，用于触发外部事件，比如播放粒子特效、声音等。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#gas%E5%85%B3%E9%94%AE%E5%AD%97%E4%BB%8B%E7%BB%8D">GAS关键字介绍</a></li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/lyra-xue-xi-ji-lu/">
+              <h3 class="post-title">
+                Lyra学习记录
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <a href='tencent://message/?uin=3304886559'>联系方式</a>
+  <a class="rss" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

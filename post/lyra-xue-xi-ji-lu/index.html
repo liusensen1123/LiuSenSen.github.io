@@ -1,0 +1,271 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lyra学习记录 | LiuSenSen</title>
+<link rel="shortcut icon" href="https://liusensen1123.github.io/LiuSenSen.github.io//favicon.ico?v=1660210787440">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://liusensen1123.github.io/LiuSenSen.github.io//styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Lyra学习记录 | LiuSenSen - Atom Feed" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="添加世界场景设置中的变量
+首先需要在C++中继承一个AWorldSetting类，之后在项目设置-&gt;引擎-&gt;一般设置-&gt;场景设置类中选中新建的WorldSetting。在AWorldSetting中添加如下代码即可：
+UP..." />
+    <meta name="keywords" content="UE5" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://liusensen1123.github.io/LiuSenSen.github.io/">
+  <img class="avatar" src="https://liusensen1123.github.io/LiuSenSen.github.io//images/avatar.png?v=1660210787440" alt="">
+  </a>
+  <h1 class="site-title">
+    LiuSenSen
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ge-ren-xiang-ce" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+        <a href="https://github.com/liusensen1123" target="_blank">
+          <i class="ri-github-line"></i>
+        </a>
+      
+    
+      
+    
+      
+    
+      
+        <a href="https://www.zhihu.com/people/sen-sen-10-86" target="_blank">
+          <i class="ri-zhihu-line"></i>
+        </a>
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Lyra学习记录
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-27
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://liusensen1123.github.io/LiuSenSen.github.io/tag/iSeY10ZHs/" class="post-tag">
+                  # UE5
+                </a>
+              
+            </div>
+            
+              <img class="post-feature-image" src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/lyra-xue-xi-ji-lu.bmp" alt="">
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h1 id="添加世界场景设置中的变量">添加世界场景设置中的变量</h1>
+<p>首先需要在C++中继承一个AWorldSetting类，之后在项目设置-&gt;引擎-&gt;一般设置-&gt;场景设置类中选中新建的WorldSetting。在AWorldSetting中添加如下代码即可：</p>
+<p><code>UPROPERTY(EditDefaultsOnly, Category=GameMode) 	TSoftClassPtr&lt;ULyraExperienceDefinition&gt; DefaultGameplayExperience;</code></p>
+<figure data-type="image" tabindex="1"><img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1658893360746.png" alt="在世界场景设置中添加其他变量" loading="lazy"></figure>
+<p>获取世界设置的方式：</p>
+<ol>
+<li>Actor：<code>GetWorldSettings()</code></li>
+<li>UWord：<code>GetWorldSettings（）</code></li>
+<li>Level:<code>GetWorldSetting()</code></li>
+</ol>
+<h1 id="自定义数据资产">自定义数据资产</h1>
+<h2 id="1-udataasset">1、UDataAsset</h2>
+<h3 id="1简介">(1)简介</h3>
+<p>用来存储数据，每一个DataAsset 都是一份数据</p>
+<p>可以派生，系统自带派生 UPrimaryDataAsset 方便数据对象的加载和释放</p>
+<p>可以引用其他的 UDataAsset</p>
+<p>可以存储UObject 实例</p>
+<p>可以BulkEdiit 批量编辑多个 UDataAsset</p>
+<p>灵活配置数据，但不好管理大量的配置对象</p>
+<p>方便配置树状组织数据，全局配置，数据对象集合</p>
+<h3 id="2使用">(2)使用</h3>
+<p>定义结构体</p>
+<pre><code class="language-c++">USTRUCT(BlueprintType, Blueprintable)
+struct FAttackInfo :public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UAnimMontage* Montage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UParticleSystem* VFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		USoundBase* Sound;
+};
+</code></pre>
+<p>定义UDataAsset</p>
+<pre><code class="language-c++">UCLASS()
+class  USympleDataAsset : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FAttackInfo AttackInfo;
+};
+</code></pre>
+<p>调用数据</p>
+<pre><code class="language-C++">void GetAssetData(USympleDataAsset* SympleDataAsset)
+{
+    if(SympleDataAsset)
+    {
+        FAttackInfo&amp; AttackInfo=SympleDataAsset-&gt;AttackInfo;
+        printf(AttackInfo);
+    }
+}
+</code></pre>
+<p>在编辑器中创建和使用<br>
+<img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1658905790696.jpg" alt="在编辑器中使用" loading="lazy"></p>
+<h2 id="2-uprimarydataasset">2、UPrimaryDataAsset</h2>
+<h3 id="1简介-2">(1)简介</h3>
+<h3 id="2使用-2">(2)使用</h3>
+<h2 id="参考">参考</h2>
+<p><a href="https://www.bilibili.com/video/BV1dk4y1r752?t=0h33m0s&amp;vd_source=75d4f1489fd90b54cbb0e639636e557a">UE4数据驱动开发 | Epic 大钊</a></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E6%B7%BB%E5%8A%A0%E4%B8%96%E7%95%8C%E5%9C%BA%E6%99%AF%E8%AE%BE%E7%BD%AE%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F">添加世界场景设置中的变量</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E8%B5%84%E4%BA%A7">自定义数据资产</a>
+<ul>
+<li><a href="#1-udataasset">1、UDataAsset</a>
+<ul>
+<li><a href="#1%E7%AE%80%E4%BB%8B">(1)简介</a></li>
+<li><a href="#2%E4%BD%BF%E7%94%A8">(2)使用</a></li>
+</ul>
+</li>
+<li><a href="#2-uprimarydataasset">2、UPrimaryDataAsset</a>
+<ul>
+<li><a href="#1%E7%AE%80%E4%BB%8B-2">(1)简介</a></li>
+<li><a href="#2%E4%BD%BF%E7%94%A8-2">(2)使用</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8F%82%E8%80%83">参考</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ue4-de-xiao-zhi-shi-dian/">
+              <h3 class="post-title">
+                UE4的小知识点
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <a href='tencent://message/?uin=3304886559'>联系方式</a>
+  <a class="rss" href="https://liusensen1123.github.io/LiuSenSen.github.io//atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

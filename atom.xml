@@ -1,0 +1,765 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://liusensen1123.github.io/LiuSenSen.github.io/</id>
+    <title>LiuSenSen</title>
+    <updated>2022-08-11T09:40:23.148Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://liusensen1123.github.io/LiuSenSen.github.io/"/>
+    <link rel="self" href="https://liusensen1123.github.io/LiuSenSen.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://liusensen1123.github.io/LiuSenSen.github.io/images/avatar.png</logo>
+    <icon>https://liusensen1123.github.io/LiuSenSen.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2022, LiuSenSen</rights>
+    <entry>
+        <title type="html"><![CDATA[使用GamePlayTag绑定UE5增强输入]]></title>
+        <id>https://liusensen1123.github.io/LiuSenSen.github.io/post/shi-yong-gameplaytag-bang-ding-ue5-zeng-qiang-shu-ru/</id>
+        <link href="https://liusensen1123.github.io/LiuSenSen.github.io/post/shi-yong-gameplaytag-bang-ding-ue5-zeng-qiang-shu-ru/">
+        </link>
+        <updated>2022-08-11T08:38:49.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="介绍">介绍</h1>
+<p>将使用UE5第一人称模板和增强输入系统组合一个简单的输入系统。本文章不是深入探讨增强型输入系统或一般输入设计，而是作为理解基本概念的良好起点。</p>
+<h1 id="项目设置">项目设置</h1>
+<p>创建第一人称模板项目，创建完成后在插件菜单栏启动<code>EnhancedInpuy</code>插件。</p>
+<h1 id="gameplaytag和资产管理器">GameplayTag和资产管理器</h1>
+<h2 id="gameplaytag设置">GameplayTag设置</h2>
+<p>我们将使用GameplayTag作为代码和编辑器之间的桥梁，在代码中引用标签进行输入绑定，在编辑器中通过数据资产进行输入配置。首先创建一个单例来保存GameplayTags。在rider中创建一个空类，命名<code>MyGameplayTags.h</code>，在<code>MyGameplayTags.h</code>中列出标签的定义和一些辅助的函数。</p>
+<h3 id="mygameplaytagsh">MyGameplayTags.h</h3>
+<pre><code class="language-c++">// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;GameplayTagContainer.h&quot;
+
+class UGameplayTagsManager;
+
+/**
+ * MyGameplayTags
+ *
+ * 游戏标签的单例
+ */
+struct FMyGameplayTags
+{
+public:
+
+   static const FMyGameplayTags&amp; Get() { return GameplayTags; }
+
+   static void InitializeNativeTags();
+
+   //输入标签
+   FGameplayTag InputTag_Move;
+   FGameplayTag InputTag_Look_Mouse;
+   FGameplayTag InputTag_Look_Stick;
+   FGameplayTag InputTag_Jump;
+   FGameplayTag InputTag_Fire;
+
+protected:
+
+   //使用 GameplayTags Manager 注册所有标签
+   void AddAllTags(UGameplayTagsManager&amp; Manager);
+
+   //注册一个标签
+   void AddTag(FGameplayTag&amp; OutTag, const ANSICHAR* TagName, const ANSICHAR* TagComment);
+
+private:
+
+   static FMyGameplayTags GameplayTags;
+};
+</code></pre>
+<h3 id="mygameplaytagscpp">MyGameplayTags.cpp</h3>
+<p>获取 GameplayTagsManager 并添加需要的标签。在代码中使用这些标签来绑定实际的字符函数，还将在编辑器中使用它们来配置输入绑定。<strong>注意：在Build.cs文件中添加GameplayTags；</strong></p>
+<pre><code class="language-c++">#include &quot;MyGameplayTags.h&quot;
+#include &quot;GameplayTagsManager.h&quot;
+#include &quot;Engine/EngineTypes.h&quot;
+
+FMyGameplayTags FMyGameplayTags::GameplayTags;
+
+void FMyGameplayTags::InitializeNativeTags()
+{
+   UGameplayTagsManager &amp; GameplayTagsManager =  UGameplayTagsManager::Get();
+
+   GameplayTags.AddAllTags(GameplayTagsManager);
+
+   //GameplayTagsManager.DoneAddingNativeTags();
+}
+
+void FMyGameplayTags::AddAllTags(UGameplayTagsManager&amp; Manager)
+{
+   AddTag(InputTag_Move, &quot;InputTag.Move&quot;, &quot;Move input.&quot;);
+   AddTag(InputTag_Look_Mouse, &quot;InputTag.Look.Mouse&quot;, &quot;Look (mouse) input.&quot;);
+   AddTag(InputTag_Look_Stick, &quot;InputTag.Look.Stick&quot;, &quot;Look (stick) input.&quot;);
+   AddTag(InputTag_Jump, &quot;InputTag.Jump&quot;, &quot;Jump input&quot;);
+   AddTag(InputTag_Fire, &quot;InputTag.Fire&quot;, &quot;Fire input.&quot;);
+}
+
+void FMyGameplayTags::AddTag(FGameplayTag&amp; OutTag, const ANSICHAR* TagName, const ANSICHAR* TagComment)
+{
+   OutTag = UGameplayTagsManager::Get().AddNativeGameplayTag(FName(TagName), FString(TEXT(&quot;(Native) &quot;)) + FString(TagComment));
+}
+</code></pre>
+<h2 id="资产管理器">资产管理器</h2>
+<p>使用资产管理器的StartInitialLoading函数在引擎初始化的时候加载和初始化我们的标签。</p>
+<h3 id="myassetmanagerh">MyAssetManager.h</h3>
+<pre><code class="language-c++">// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;Engine/AssetManager.h&quot;
+#include &quot;MyAssetManager.generated.h&quot;
+
+/**
+ * 
+ */
+UCLASS()
+class INPUTWITHGAMEPLAYTAG_API UMyAssetManager : public UAssetManager
+{
+   GENERATED_BODY()
+
+public:
+   UMyAssetManager();
+
+   static  UMyAssetManager&amp; Get();
+
+protected:
+   virtual  void StartInitialLoading() override;
+};
+</code></pre>
+<h3 id="myassetmanagercpp">MyAssetManager.cpp</h3>
+<pre><code class="language-c++">// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include &quot;MyAssetManager.h&quot;
+
+#include &quot;MyGameplayTags.h&quot;
+
+UMyAssetManager::UMyAssetManager()
+{
+   
+}
+
+UMyAssetManager&amp; UMyAssetManager::Get()
+{
+   check(GEngine);
+
+   UMyAssetManager* MyAssetManager=Cast&lt;UMyAssetManager&gt;(GEngine-&gt;AssetManager);
+   return  * MyAssetManager;
+}
+
+void UMyAssetManager::StartInitialLoading()
+{
+   Super::StartInitialLoading();
+
+   FMyGameplayTags::InitializeNativeTags();
+}
+</code></pre>
+<p><strong>注意：需要在项目设置中搜索 AssetMessage ,在资产管理器中更换为MyAssetManager。</strong></p>
+<h1 id="输入配置">输入配置</h1>
+<p>需要一种将输入标签与编辑器中输入操作相关联的方法，因此我们将创建一个数据资产来帮助我们解决。 首先，我们将创建一个简单的结构体来包含UInputAction 和 FGameplayTag。 我们将命名结构 FTaggedInputAction 并将其公开到蓝图。 接下来，我们的数据资产将包含一个FTaggedInputAction 数组和一个通过标签寻找Action的方法。</p>
+<h2 id="inputconfigh">InputConfig.h</h2>
+<pre><code class="language-c++">#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;Engine/DataAsset.h&quot;
+#include &quot;GameplayTags/Classes/GameplayTagContainer.h&quot;
+#include &quot;InputConfig.generated.h&quot;
+
+class UInputAction;
+struct FGameplayTag;
+
+
+/**
+ * FTaggedInputAction
+ *
+ * 将操作和Tag结合
+ */
+USTRUCT(BlueprintType)
+struct FTaggedInputAction
+{
+   GENERATED_BODY()
+
+public:
+
+   UPROPERTY(EditDefaultsOnly)
+   const UInputAction* InputAction = nullptr;
+
+   UPROPERTY(EditDefaultsOnly, Meta = (Categories = &quot;InputTag&quot;))
+   FGameplayTag InputTag;
+};
+
+/**
+ *
+ */
+UCLASS()
+class INPUTWITHGAMEPLAYTAG_API UInputConfig : public UDataAsset
+{
+   GENERATED_BODY()
+
+public:
+   // 返回一个给定标签的输入操作（第一个）
+   UFUNCTION()
+   const UInputAction* FindInputActionForTag(const FGameplayTag&amp; InputTag) const;
+
+public:
+   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = &quot;InputAction&quot;))
+   TArray&lt;FTaggedInputAction&gt; TaggedInputActions;
+};
+</code></pre>
+<h2 id="inputconfigcpp">InputConfig.CPP</h2>
+<pre><code class="language-c++">#include &quot;InputConfig.h&quot;
+#include &quot;GameplayTagContainer.h&quot;
+
+const UInputAction* UInputConfig::FindInputActionForTag(const FGameplayTag&amp; InputTag) const
+{
+   for (const FTaggedInputAction&amp; TaggedInputAction : TaggedInputActions)
+   {
+      if (TaggedInputAction.InputAction &amp;&amp; TaggedInputAction.InputTag == InputTag)
+      {
+         return TaggedInputAction.InputAction;
+      }
+   }
+
+   return nullptr;
+}
+</code></pre>
+<p><strong>注意：添加UInputAction的API，在Build.cs文件中</strong></p>
+<h1 id="enhancedinputcomponent增强输入组件">EnhancedInputComponent增强输入组件</h1>
+<p>继承自UEnhancedInputComponent，借助BindAction方法进行输入操作绑定。</p>
+<h2 id="umyenhancedinputcomponenth">UMyEnhancedInputComponent.h</h2>
+<pre><code class="language-c++">// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;EnhancedInputComponent.h&quot;
+#include &quot;GameplayTagContainer.h&quot;
+#include &quot;InputConfig.h&quot;
+#include &quot;MyEnhancedInputComponent.generated.h&quot;
+
+/**
+ * 
+ */
+UCLASS()
+class INPUTWITHGAMEPLAYTAG_API UMyEnhancedInputComponent : public UEnhancedInputComponent
+{
+   GENERATED_BODY()
+public:
+   template&lt;class UserCalss,typename FunType&gt;
+   void BindActionBuTag(const UInputConfig* InputConfig ,const FGameplayTag&amp; InputTag,ETriggerEvent TriggerEvent,UserCalss* Object,FunType Func);
+   
+};
+template&lt;class UserCalss,typename FunType&gt;
+void UMyEnhancedInputComponent::BindActionBuTag(const UInputConfig* InputConfig ,const FGameplayTag&amp; InputTag,ETriggerEvent TriggerEvent,UserCalss* Object,FunType Func)
+{
+   check(InputConfig);
+   if (const UInputAction* IA =InputConfig-&gt;FindInputActionForTag(InputTag))
+   {
+      BindAction(IA,TriggerEvent,Object,Func);
+   }
+}
+</code></pre>
+<p><strong>注意：需要在项目设置中指定输入组件，选择UMyEnhancedInputComponent。</strong></p>
+<h1 id="角色设置">角色设置</h1>
+<p>在角色代码中简化了模板的代码，添加一个InputConfig的指针变量，添加基础的功能方法。（只做了对应测试效果）</p>
+<h2 id="characterh">Character.h</h2>
+<pre><code class="language-c++">// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;InputActionValue.h&quot;
+#include &quot;InputConfig.h&quot;
+#include &quot;GameFramework/Character.h&quot;
+#include &quot;InputWithGameplayTagCharacter.generated.h&quot;
+
+class UInputComponent;
+class USkeletalMeshComponent;
+class USceneComponent;
+class UCameraComponent;
+class UAnimMontage;
+class USoundBase;
+
+// Declaration of the delegate that will be called when the Primary Action is triggered
+// It is declared as dynamic so it can be accessed also in Blueprints
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUseItem);
+
+UCLASS(config=Game)
+class AInputWithGameplayTagCharacter : public ACharacter
+{
+   GENERATED_BODY()
+
+   /** Pawn mesh: 1st person view (arms; seen only by self) */
+   UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+   USkeletalMeshComponent* Mesh1P;
+
+   /** First person camera */
+   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = &quot;true&quot;))
+   UCameraComponent* FirstPersonCameraComponent;
+
+public:
+   AInputWithGameplayTagCharacter();
+
+protected:
+   virtual void BeginPlay();
+   
+   virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+public:
+   
+   USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+   
+   UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+
+
+
+public:
+   UPROPERTY(EditDefaultsOnly,Category=&quot;Input&quot;)
+   UInputConfig* InputConfig;
+   
+
+   void Input_Move(const FInputActionValue&amp; InputActionValue);
+
+
+   void Input_Look(const FInputActionValue&amp; InputActionValue);
+
+
+   void Input_Jump(const FInputActionValue&amp; InputActionValue);
+
+
+   void Input_Fire(const FInputActionValue&amp; InputActionValue);
+   
+};
+</code></pre>
+<h2 id="charactercpp">Character.cpp</h2>
+<p>接下来需要使用相关的游戏性标签将角色的操作函数绑定到适当的 InputAction。这是通过覆盖 SetupPlayerInputComponent 并使用我们添加到增强型输入组件中的 BindActionByTag 函数来完成的。使用这种方法需要我们将相应的字符动作硬编码到输入标签，例如原生级别的 InputTag_Move、InputTag_Fire，但是当我们使用 UInputConfig 资产配置 InputActions 时，它为我们提供了编辑器灵活性。</p>
+<pre><code class="language-c++">// Copyright Epic Games, Inc. All Rights Reserved.
+
+#include &quot;InputWithGameplayTagCharacter.h&quot;
+#include &quot;InputWithGameplayTagProjectile.h&quot;
+#include &quot;MyEnhancedInputComponent.h&quot;
+#include &quot;MyGameplayTags.h&quot;
+#include &quot;Animation/AnimInstance.h&quot;
+#include &quot;Camera/CameraComponent.h&quot;
+#include &quot;Components/CapsuleComponent.h&quot;
+#include &quot;Components/InputComponent.h&quot;
+#include &quot;GameFramework/InputSettings.h&quot;
+
+
+//////////////////////////////////////////////////////////////////////////
+// AInputWithGameplayTagCharacter
+
+AInputWithGameplayTagCharacter::AInputWithGameplayTagCharacter()
+{
+   // Set size for collision capsule
+   GetCapsuleComponent()-&gt;InitCapsuleSize(55.f, 96.0f);
+
+
+
+   // Create a CameraComponent    
+   FirstPersonCameraComponent = CreateDefaultSubobject&lt;UCameraComponent&gt;(TEXT(&quot;FirstPersonCamera&quot;));
+   FirstPersonCameraComponent-&gt;SetupAttachment(GetCapsuleComponent());
+   FirstPersonCameraComponent-&gt;SetRelativeLocation(FVector(-39.56f, 1.75f, 64.f)); // Position the camera
+   FirstPersonCameraComponent-&gt;bUsePawnControlRotation = true;
+
+   // Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+   Mesh1P = CreateDefaultSubobject&lt;USkeletalMeshComponent&gt;(TEXT(&quot;CharacterMesh1P&quot;));
+   Mesh1P-&gt;SetOnlyOwnerSee(true);
+   Mesh1P-&gt;SetupAttachment(FirstPersonCameraComponent);
+   Mesh1P-&gt;bCastDynamicShadow = false;
+   Mesh1P-&gt;CastShadow = false;
+   Mesh1P-&gt;SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
+   Mesh1P-&gt;SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
+
+}
+
+void AInputWithGameplayTagCharacter::BeginPlay()
+{
+   // Call the base class  
+   Super::BeginPlay();
+
+}
+
+//////////////////////////////////////////////////////////////////////////// Input
+
+void AInputWithGameplayTagCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+{
+   UMyEnhancedInputComponent* MyEnhancedInputComponent=Cast&lt;UMyEnhancedInputComponent&gt;(PlayerInputComponent);
+   check(MyEnhancedInputComponent);
+
+   const FMyGameplayTags&amp; GameplayTags =FMyGameplayTags::Get();
+
+   MyEnhancedInputComponent-&gt;BindActionBuTag(InputConfig,GameplayTags.InputTag_Move,ETriggerEvent::Triggered,this,&amp;AInputWithGameplayTagCharacter::Input_Move);
+   MyEnhancedInputComponent-&gt;BindActionBuTag(InputConfig,GameplayTags.InputTag_Fire,ETriggerEvent::Triggered,this,&amp;AInputWithGameplayTagCharacter::Input_Fire);
+   
+}
+
+void AInputWithGameplayTagCharacter::Input_Move(const FInputActionValue&amp; InputActionValue)
+{
+   GEngine-&gt;AddOnScreenDebugMessage(1, 1, FColor::Red, TEXT(&quot;1&quot;));
+}
+
+void AInputWithGameplayTagCharacter::Input_Look(const FInputActionValue&amp; InputActionValue)
+{
+}
+
+void AInputWithGameplayTagCharacter::Input_Jump(const FInputActionValue&amp; InputActionValue)
+{
+}
+
+void AInputWithGameplayTagCharacter::Input_Fire(const FInputActionValue&amp; InputActionValue)
+{
+   GEngine-&gt;AddOnScreenDebugMessage(1, 1, FColor::Red, TEXT(&quot;2&quot;));
+}
+</code></pre>
+<h1 id="-分界线-">------分界线-----</h1>
+<p><strong>C++的部分已经全部完成，接下来在蓝图中操作即可。</strong></p>
+<h1 id="inputasset和输入配置">InputAsset和输入配置</h1>
+<h2 id="inputaction">InputAction</h2>
+<p>Input Action 代表一个抽象的游戏操作。输入操作返回以下数据类型之一的值：bool、float、Vector2 和 Vector3。它们还可以配置触发规则和值修饰符。</p>
+<p>触发器通过设置限定符和条件来影响触发操作的方式或时间。例如，“Pressed”触发器每次按下触发事件一次。而“Pulse”触发器将在按下键或按钮时每隔一段时间触发事件。可以应用修饰符来调整输入动作的最终输出。例如，“DeadZone”修饰符将输入值限制在阈值下限和上限之间。</p>
+<p>对于我们的简单示例，我们需要五个输入操作。我们将<strong>Look</strong> 拆分为两个动作，因此我们可以分别处理基于鼠标和摇杆的输入。通过在内容浏览器中单击鼠标右键并选择来创建以下输入操作<code>输入-&gt;输入操作</code>从资产创建菜单。</p>
+<p>分别创建对应的开火跳跃等等，在此不一一列举。</p>
+<h2 id="inputconfig">InputConfig</h2>
+<p>输入配置将基于我们之前定义的 UInputConfig 类。在这里，我们将配置输入标签和应该为角色或Pawn绑定的输入操作之间的关联。通过在内容浏览器中右键单击并选择来创建输入配置资产杂项-&gt;数据资产然后在类选择器中选择 InputConfig。</p>
+<p>创建好之后，为每个输入操作添加一个子项。</p>
+<figure data-type="image" tabindex="1"><img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1660210214585.png" alt="" loading="lazy"></figure>
+<h2 id="角色蓝图">角色蓝图</h2>
+<figure data-type="image" tabindex="2"><img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1660210354467.png" alt="" loading="lazy"></figure>
+<h1 id="概括">概括</h1>
+<p>我们实现了一个基础输入系统，该系统利用增强输入系统和游戏标签来实现可配置性。首先，我们创建了原生 Gameplay 标签来描述输入并使用 Asset Manager 加载它们。接下来，我们创建了一个数据资产来将输入标签映射到输入操作，并使用该数据将输入操作绑定到我们原生角色的操作。然后我们创建了所有必要的资产来定义和配置我们的输入。最后，我们通过设置一个角色蓝图来使用这个系统，将它们联系在一起。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Lyra输入系统]]></title>
+        <id>https://liusensen1123.github.io/LiuSenSen.github.io/post/lyra-shu-ru-xi-tong/</id>
+        <link href="https://liusensen1123.github.io/LiuSenSen.github.io/post/lyra-shu-ru-xi-tong/">
+        </link>
+        <updated>2022-08-09T03:05:59.000Z</updated>
+        <content type="html"><![CDATA[<p>1、默认的输入配置</p>
+<p>ULyraHeroComponent用于创建玩家控制的Player（角色、车辆等）的组件。包含了一个蓝图配置的数组DefaultInputConfigs，以及一个初始化玩家输入的函数InitializePlayerInput（）；</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[GAS超级入门版]]></title>
+        <id>https://liusensen1123.github.io/LiuSenSen.github.io/post/gas-chao-ji-ru-men-ban/</id>
+        <link href="https://liusensen1123.github.io/LiuSenSen.github.io/post/gas-chao-ji-ru-men-ban/">
+        </link>
+        <updated>2022-07-27T08:12:32.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="gas关键字介绍">GAS关键字介绍</h1>
+<p>😀1. <strong>AbilitySystemComponent</strong>：技能系统组件是整个GAS的核心，用于管理各种技能和处理技能系统的所有交互。该组件附加在需要拥有技能的角色上，并可以把技能赋予角色。<br>
+😃2. <strong>GameplayTag</strong>：游戏性标签GameplayTag是用于标记、描述Ability和Effect等游戏对象，相当于它们的ID。GameplayTag的内部实现基于虚幻的FName字符串，因此具有高效的查询性能。GameplayTag不仅能用于技能系统，也可以在其它任何地方使用，当需要层级标签的时候。<br>
+😄3. <strong>GameplayAbility（GA）</strong>：技能GameplayAbility是角色可以使用的能力，比如跳跃、攻击、火球术、次元斩等。创建不同的技能是GAS的一个主要工作。在GA中可以触发不同的技能任务（AbilityTask），它们承担了诸如播放动画、角色移动等持续一段时间的功能。<br>
+😁4. <strong>GameplayEffect（GE）</strong>：游戏性效果GameplayEffect相当于GAS中的Buff类，用于修改各种数值，一般通过改变自己或目标的属性值和标签(GameplayTag)来实现。比如附加伤害、回血、光环、Buff/Debuff等。技能的消耗和冷却通常也是用GE实现。属性集AttributeSet是表示Actor各种属性值的集合，保存在ASC中，是GE的主要作用目标。<br>
+😆5. <strong>GameplayCue</strong>：游戏性提示GameplayCue类似于GAS中的通知事件，用于触发外部事件，比如播放粒子特效、声音等。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Lyra学习记录]]></title>
+        <id>https://liusensen1123.github.io/LiuSenSen.github.io/post/lyra-xue-xi-ji-lu/</id>
+        <link href="https://liusensen1123.github.io/LiuSenSen.github.io/post/lyra-xue-xi-ji-lu/">
+        </link>
+        <updated>2022-07-27T03:36:04.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="添加世界场景设置中的变量">添加世界场景设置中的变量</h1>
+<p>首先需要在C++中继承一个AWorldSetting类，之后在项目设置-&gt;引擎-&gt;一般设置-&gt;场景设置类中选中新建的WorldSetting。在AWorldSetting中添加如下代码即可：</p>
+<p><code>UPROPERTY(EditDefaultsOnly, Category=GameMode) 	TSoftClassPtr&lt;ULyraExperienceDefinition&gt; DefaultGameplayExperience;</code></p>
+<figure data-type="image" tabindex="1"><img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1658893360746.png" alt="在世界场景设置中添加其他变量" loading="lazy"></figure>
+<p>获取世界设置的方式：</p>
+<ol>
+<li>Actor：<code>GetWorldSettings()</code></li>
+<li>UWord：<code>GetWorldSettings（）</code></li>
+<li>Level:<code>GetWorldSetting()</code></li>
+</ol>
+<h1 id="自定义数据资产">自定义数据资产</h1>
+<h2 id="1-udataasset">1、UDataAsset</h2>
+<h3 id="1简介">(1)简介</h3>
+<p>用来存储数据，每一个DataAsset 都是一份数据</p>
+<p>可以派生，系统自带派生 UPrimaryDataAsset 方便数据对象的加载和释放</p>
+<p>可以引用其他的 UDataAsset</p>
+<p>可以存储UObject 实例</p>
+<p>可以BulkEdiit 批量编辑多个 UDataAsset</p>
+<p>灵活配置数据，但不好管理大量的配置对象</p>
+<p>方便配置树状组织数据，全局配置，数据对象集合</p>
+<h3 id="2使用">(2)使用</h3>
+<p>定义结构体</p>
+<pre><code class="language-c++">USTRUCT(BlueprintType, Blueprintable)
+struct FAttackInfo :public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UAnimMontage* Montage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UParticleSystem* VFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		USoundBase* Sound;
+};
+</code></pre>
+<p>定义UDataAsset</p>
+<pre><code class="language-c++">UCLASS()
+class  USympleDataAsset : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FAttackInfo AttackInfo;
+};
+</code></pre>
+<p>调用数据</p>
+<pre><code class="language-C++">void GetAssetData(USympleDataAsset* SympleDataAsset)
+{
+    if(SympleDataAsset)
+    {
+        FAttackInfo&amp; AttackInfo=SympleDataAsset-&gt;AttackInfo;
+        printf(AttackInfo);
+    }
+}
+</code></pre>
+<p>在编辑器中创建和使用<br>
+<img src="https://liusensen1123.github.io/LiuSenSen.github.io//post-images/1658905790696.jpg" alt="在编辑器中使用" loading="lazy"></p>
+<h2 id="2-uprimarydataasset">2、UPrimaryDataAsset</h2>
+<h3 id="1简介-2">(1)简介</h3>
+<h3 id="2使用-2">(2)使用</h3>
+<h2 id="参考">参考</h2>
+<p><a href="https://www.bilibili.com/video/BV1dk4y1r752?t=0h33m0s&amp;vd_source=75d4f1489fd90b54cbb0e639636e557a">UE4数据驱动开发 | Epic 大钊</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[UE4的小知识点]]></title>
+        <id>https://liusensen1123.github.io/LiuSenSen.github.io/post/ue4-de-xiao-zhi-shi-dian/</id>
+        <link href="https://liusensen1123.github.io/LiuSenSen.github.io/post/ue4-de-xiao-zhi-shi-dian/">
+        </link>
+        <updated>2022-07-25T09:05:03.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="一互联网上收集的小教程">（一）互联网上收集的小教程</h2>
+<p><a href="https://blog.csdn.net/weixin_45959035/article/details/111562312">UE4自定义点击区域的Button</a></p>
+<p><a href="https://blog.csdn.net/weixin_45959035/article/details/111563029">UE4触摸屏旋转、双指缩放</a></p>
+<p><a href="http://www.v5xy.com/?p=696">UE4 游戏中启动其他的进程（xx.exe）</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/388335131">UE4使用Http下载文件</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/9985746.html">UE4增加观察者</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10113827.html">UE4爆头和穿墙</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10182685.html">UE4是单线程的吗</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10286383.html">UE4 .uproject文件无关联 右键菜单少了</a></p>
+<p><a href="https://www.cnblogs.com/timy/p/10301234.html">UE4富文本</a></p>
+<h2 id="二-ue4-c必备知识点">（二） UE4 C++必备知识点</h2>
+<h3 id="1-宏判断">1、宏判断</h3>
+<table>
+<thead>
+<tr>
+<th>UE4宏</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UE_BUILD_SHIPPING</td>
+<td>是不是构建发行包</td>
+</tr>
+<tr>
+<td>UE_BUILD_DEBUG</td>
+<td>是不是构建DeBug包</td>
+</tr>
+<tr>
+<td>UE_BUILD_DEVELOPMENT</td>
+<td>是不是构建开发包</td>
+</tr>
+<tr>
+<td>UE_GAME</td>
+<td>是不是游戏模式</td>
+</tr>
+<tr>
+<td>UE_EDITOR</td>
+<td>是不是编辑器模式</td>
+</tr>
+<tr>
+<td>UE_SERVER</td>
+<td>是不是独立服务器</td>
+</tr>
+<tr>
+<td>更多宏判断在Build.h文件中</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-prc网络">2、PRC网络</h3>
+<p>添加可复制变量是需要在类中重写</p>
+<ul>
+<li>GetLifetimeReplicatedProps(TArray&lt; FLifetimeProperty &gt; &amp; OutLifetimeProps) const</li>
+<li>DOREPLIFETIME_CONDITION( AGamePC, PlayFightInfo, COND_OwnerOnly);</li>
+</ul>
+<h3 id="3-创建异步加载节点">3、创建异步加载节点</h3>
+<pre><code class="language-c++">Ｈ文件
+
+UENUM(BlueprintType)
+enum class EDownloadWay :uint8
+{
+	Get,
+	Post
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBPHttpDownloadNode, FString, Result);
+UCLASS()
+class YDEMO_API UHttpDownloadNode : public UBlueprintAsyncActionBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable)
+		FBPHttpDownloadNode OnSuccess;
+	UPROPERTY(BlueprintAssignable)
+		FBPHttpDownloadNode OnFail;
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = &quot;true&quot;))
+		static UHttpDownloadNode* BP_Download(EDownloadWay Download, const FString&amp; URL);
+	//完成
+	void OnRequestComplete(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded);
+	//进度
+	void OnRequestProgress(FHttpRequestPtr HttpRequest, int32 BytesSent, int32 BytesReceived);
+};
+CPP文件
+
+UHttpDownloadNode* UHttpDownloadNode::BP_Download(EDownloadWay Download, const FString&amp; URL)
+{
+	UHttpDownloadNode* BlueprintNode = NewObject&lt;UHttpDownloadNode&gt;();
+
+	FHttpRequestRef HttpReuest = FHttpModule::Get().CreateRequest();
+	HttpReuest-&gt;SetURL(URL);
+	UE_LOG(LogTemp, Error, TEXT(&quot;%s&quot;), *URL);
+	HttpReuest-&gt;SetVerb(TEXT(&quot;GET&quot;));
+	HttpReuest-&gt;SetHeader(TEXT(&quot;Content-Type&quot;), TEXT(&quot;application/x-www-form-urlencoded&quot;));
+	HttpReuest-&gt;OnProcessRequestComplete().BindUObject(BlueprintNode, &amp;UHttpDownloadNode::OnRequestComplete);
+	HttpReuest-&gt;OnRequestProgress().BindUObject(BlueprintNode, &amp;UHttpDownloadNode::OnRequestProgress);
+	HttpReuest-&gt;ProcessRequest();
+	return nullptr;
+
+}
+
+void UHttpDownloadNode::OnRequestComplete(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded)
+{
+
+}
+
+void UHttpDownloadNode::OnRequestProgress(FHttpRequestPtr HttpRequest, int32 BytesSent, int32 BytesReceived)
+{
+
+}
+
+</code></pre>
+<h3 id="4-判断ue4运行平台">4、判断UE4运行平台</h3>
+<pre><code class="language-c++"> FPlatformProperties::IniPlatformName();
+ UGameplayStatics::GetPlatformName()；
+</code></pre>
+<h3 id="5-ue4默认读取ini文件">5、UE4默认读取ini文件</h3>
+<p>例如 DefaultGame.ini文件内容如下</p>
+<pre><code class="language-ini">[/Script/UI.Setting]
+;血量低于此值时显示泛红
+HpLowPercent=0.3
+;操作滑杆最大值
+OperationSliderMax=100
+;画面滑杆最大值
+FrameSliderMax=100
+;声音滑杆最大值
+SoundSliderMax=100
+;其他滑杆最大值
+OtherSliderMax=100
+</code></pre>
+<p>读取方式为：</p>
+<pre><code class="language-c++">	float ReturnVaule=50;
+	TArray&lt;FString&gt; ConfigTable={&quot;OperationSliderMax&quot;,&quot;FrameSliderMax&quot;,&quot;SoundSliderMax&quot;,&quot;OtherSliderMax&quot;};
+	GConfig-&gt;GetFloat(TEXT(&quot;/Script/UI.Setting&quot;), *ConfigTable[sID-1], ReturnVaule, GGameIni);
+	return ReturnVaule;
+</code></pre>
+<p>其中GConfig中还包含类似的 GetString(）等同类型的函数。<br>
+GGameIni是引擎自带的默认定义的ini文件。还有其他的GInputIni等。定义位置为CoreGlobals.cpp;</p>
+<h3 id="6-kismetsystem库中冷门api">6、KismetSystem库中冷门API</h3>
+<blockquote>
+<ol>
+<li>获取引擎版本<br>
+<code>static FString GetEngineVersion();</code></li>
+<li>获取项目名称<br>
+<code>static FString GetGameName();</code></li>
+<li>设置Windows窗口标题<br>
+<code>static void SetWindowTitle(const FText&amp; Title);</code></li>
+<li>将组件移动到***<br>
+<code>static void MoveComponentTo(USceneComponent* Component, FVector TargetRelativeLocation, FRotator TargetRelativeRotation, bool bEaseOut, bool bEaseIn, float OverTime, bool bForceShortestRotationPath, TEnumAsByte&lt;EMoveComponentAction::Type&gt; MoveAction, FLatentActionInfo LatentInfo);</code></li>
+<li>获取渲染细节模式<br>
+<code>static int32 GetRenderingDetailMode();</code></li>
+<li>显示广告条幅<br>
+<code>static void ShowAdBanner(int32 AdIdIndex, bool bShowOnBottomOfScreen);</code></li>
+<li>已启用屏保<br>
+<code>static bool IsScreensaverEnabled();</code></li>
+</ol>
+</blockquote>
+<h3 id="7-ue4模拟网络延时和丢包">7、UE4模拟网络延时和丢包</h3>
+<p>命令行指令</p>
+<blockquote>
+<ul>
+<li>1、Net pktLag=，模拟延迟，单位是毫秒</li>
+<li>2、Net PktLagVariance=300，在模拟延迟的基础上，再上下浮动300毫秒。加上这个就会出现移动瞬移卡顿的效果</li>
+<li>3、Net PKtLoss=，丢包，单位是百分比，Net PKtLoss=90就是90%会丢包，也会出现移动瞬移卡顿</li>
+<li>4、Net PktOrder=1，乱序发包，会出现一定的移动瞬移，但不太明显</li>
+<li>5、Net PktDup=，重复发包，单位是百分比，Net PktDup=20表示20%会出现重复发包。</li>
+</ul>
+</blockquote>
+<h2 id="三常用工具">（三）常用工具</h2>
+<p><a href="https://gitee.com/sourcegit/sourcegit?_from=gitee_search">SourceGit</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[相机模块功能]]></title>
+        <id>https://liusensen1123.github.io/LiuSenSen.github.io/post/xiang-ji-mo-kuai-gong-neng/</id>
+        <link href="https://liusensen1123.github.io/LiuSenSen.github.io/post/xiang-ji-mo-kuai-gong-neng/">
+        </link>
+        <updated>2022-07-25T03:06:17.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="cameracomponent">CameraComponent</h1>
+<ul>
+<li>通过配置表<code>DT_CharacterInitConf</code>的形式配到玩家角色上。</li>
+<li>组件中暴露了一个可访问的静态函数<code>FindCameraComponent</code>来获取到玩家身上的相机组件。</li>
+<li>相机组件的<code>TargetActor</code>为相机的<code>Owner</code>。</li>
+<li>相机组件中使用<code>CameraModeStack</code>存贮了相机当前的模式，可以通过Pull和Push来动态的管理。</li>
+<li><code>CameraModePriorityStack</code>为相机堆栈的优先级。</li>
+<li><code>UpdateBlendingStack</code>更新当前相机模式的堆栈。</li>
+<li><code>GetCameraView</code>帧调用事件，重写父类<code>UCameraComponent</code>的函数。后续相机的数据更新都是在这个函数下进行。</li>
+</ul>
+<h1 id="cameramodebase">CameraModeBase</h1>
+<ul>
+<li>
+<p>使用方法：在蓝图中继承<code>CameraModeBase</code>，或者在C++中继承并添加相应的功能，然后在蓝图中进行数值的配置。</p>
+</li>
+<li>
+<p><code>AddControllerRotationInput</code>等函数只能在Pawn的组件下调用，因为其中的实现方式的目标为Pawn。</p>
+<h3 id="fncameramodeview">FNCameraModeView()</h3>
+<p>用于存储当前相机组件的数据，包含了相机的中枢位置，当前的世界旋转，当前的世界位置。在<code>UNCameraModeBase</code>中使用函数<code>UpdateView()</code>进行逻辑计算，在<code>UpdateCameraMode（）</code>函数中进行赋值。</p>
+</li>
+</ul>
+<h1 id="springarmcameramode">SpringArmCameraMode</h1>
+<ul>
+<li>是<code>CameraModeBase</code>的延续，在<code>CameraModeBase</code>的基础上添加了相机臂的一些操作。</li>
+<li>相机臂在进行视角变化或者相机臂的长度进行变化时，多数是去修改他的配置参数，然后再<code>Updata</code>中进行更新</li>
+</ul>
+<h1 id="terraindetecting">TerrainDetecting</h1>
+<p>保持相机和地面平行,例如上坡的时候往上看，下坡的时候往下看。表现效果为在游戏过程中鼠标操作间隔n秒没有操作之后视线自动回归配置的位置。</p>
+<h1 id="camerasplinemovecomponent">CameraSplineMoveComponent</h1>
+<p>可以将组件挂载到Actor上配合蓝图中的<code>BP_CameraTrigger</code>和<code>NSplineActor</code>使用。</p>
+<h1 id="已知问题">已知问题</h1>
+<p>目前相机臂模式中不支持在非Pawn的Actor上挂在相机组件并且进行视角晃动。因为在<code>UpdateCameraRotation</code>函数中进行了Pawn的判定</p>
+<p>快速晃动视角相机会出现卡顿的情况。可能情况：</p>
+<blockquote>
+<p>1、旋转值由0到360的过程变成了0到-360出现反向旋转。</p>
+<p>2、向右旋转过程中有一种缓出的过渡效果，这时候突然向左移动，过度效果没有消失，出现冲突。</p>
+</blockquote>
+<h1 id="other">Other</h1>
+<ol>
+<li><code>TOptional</code>模板类是专门应用于标记一个变量是否被赋值。<code>IsSet()</code>函数：<code>TOptional&lt;float&gt; TargetArmLen</code>  当值有意义时为真；如果调用 Get Value() 未定义，则返回 false。<code>Reset()</code>函数：配合<code>IsSet()</code>函数使用，将<code>IsSet</code>变量设置为假。</li>
+</ol>
+]]></content>
+    </entry>
+</feed>
